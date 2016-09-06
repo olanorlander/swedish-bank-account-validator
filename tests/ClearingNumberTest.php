@@ -33,7 +33,7 @@ class ClearingNumberTest extends \PHPUnit_Framework_TestCase
      */
     public function test_that_invalid_clearing_number_length_throws_exception($invalidClearing)
     {
-        $this->setExpectedException(InvalidClearingNumberException::class);
+        $this->expectException(InvalidClearingNumberException::class);
         new ClearingNumber($invalidClearing);
     }
 

@@ -4,9 +4,19 @@ namespace SwedishBankAccountValidator;
 
 class BankAccountValidator
 {
-    public function validate($clearingNumber, $accountNumber)
+    /**
+     * @param $string
+     * @return SerialNumberValidator
+     */
+    public static function newSerialNumberValidatorByClearingNumber($string)
     {
-        $bank = Bank::getInstanceByClearingNumber(new ClearingNumber($clearingNumber));
-        return $bank->validateAccountNumber($accountNumber);
+        $clearingNumber = new ClearingNumber($string);
+        return self::requireBankWithClearingNumber($clearingNumber);
+    }
+
+    private static function requireBankWithClearingNumber(ClearingNumber $clearingNumber)
+    {
+        $bank = Bank::getInstanceByClearingNumber($clearingNumber);
+        return new SerialNumberValidator($bank);
     }
 }

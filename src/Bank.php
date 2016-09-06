@@ -2,7 +2,7 @@
 
 namespace SwedishBankAccountValidator;
 
-use SwedishBankAccountValidator\Exception\InvalidAccountNumberFormatException;
+use SwedishBankAccountValidator\Exception\InvalidSerialNumberFormatException;
 
 class Bank
 {
@@ -53,35 +53,43 @@ class Bank
     }
 
     /**
-     * @param string $accountNumber
+     * @param string $serialNumber
      * @return ValidatorResult
      */
-    public function validateAccountNumber($accountNumber)
+    public function validateSerialNumber($serialNumber)
     {
         if (in_array($this->getAccountNumberType(), [self::ACCOUNT_NUMBER_TYPE_1_1, self::ACCOUNT_NUMBER_TYPE_1_2])) {
-            $this->guardAgainstInvalidType1AccountNumber($this->clearingNumber, $accountNumber);
-            $checksum = $this->clearingNumber . $accountNumber;
+            $this->guardAgainstInvalidType1SerialNumber($this->clearingNumber, $serialNumber);
+            $checksum = $this->clearingNumber . $serialNumber;
             $checksum = $this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_1_1 ?
                 substr($checksum, 1) : $checksum;
-            return $this->response($accountNumber, $this->verifyMod11Checksum($checksum));
+            return $this->response($serialNumber, $this->verifyMod11Checksum($checksum));
         } elseif ($this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_2_1) {
-            $this->guardAgainstInvalidType21AccountNumber($accountNumber);
-            return $this->response($accountNumber, $this->verifyMod10Checksum($accountNumber));
+            $this->guardAgainstInvalidType21SerialNumber($serialNumber);
+            return $this->response($serialNumber, $this->verifyMod10Checksum($serialNumber));
         } elseif ($this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_2_2) {
-            $this->guardAgainstInvalidType22AccountNumber($accountNumber);
-            return $this->response($accountNumber, $this->verifyMod11Checksum($accountNumber));
+            $this->guardAgainstInvalidType22SerialNumber($serialNumber);
+            return $this->response($serialNumber, $this->verifyMod11Checksum($serialNumber));
         } elseif ($this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_2_3) {
-            $this->guardAgainstInvalidType23AccountNumber($accountNumber);
-            return $this->response($accountNumber, $this->verifyMod10Checksum(substr($accountNumber, -10)));
+            $this->guardAgainstInvalidType23SerialNumber($serialNumber);
+            return $this->response($serialNumber, $this->verifyMod10Checksum(substr($serialNumber, -10)));
         }
     }
 
-    private function response($accountNumber, $isValidChecksum)
+    /**
+     * @return string
+     */
+    public function getBankName()
+    {
+        return $this->bankName;
+    }
+
+    private function response($serialNumber, $isValidChecksum)
     {
         return new ValidatorResult(
             $this->bankName,
             $this->clearingNumber,
-            $accountNumber,
+            $serialNumber,
             $isValidChecksum
         );
     }
@@ -91,39 +99,39 @@ class Bank
         return self::$accountTypes[$this->bankName];
     }
 
-    private function guardAgainstInvalidType1AccountNumber(ClearingNumber $clearingNumber, $accountNumber)
+    private function guardAgainstInvalidType1SerialNumber(ClearingNumber $clearingNumber, $serialNumber)
     {
-        $merged = $clearingNumber . $accountNumber;
+        $merged = $clearingNumber . $serialNumber;
         if (!preg_match('/^\d{11}$/', $merged)) {
-            throw new InvalidAccountNumberFormatException(
-                "Clearing-number and account-number should be exactly 11 digits: '$merged'"
+            throw new InvalidSerialNumberFormatException(
+                "Clearing-number and serial-number should be exactly 11 digits: '$merged'"
             );
         }
     }
 
-    private function guardAgainstInvalidType21AccountNumber($accountNumber)
+    private function guardAgainstInvalidType21SerialNumber($serialNumber)
     {
-        if (!preg_match('/^\d{10}$/', $accountNumber)) {
-            throw new InvalidAccountNumberFormatException(
-                "Account-number should be exactly 10 digits: '$accountNumber'"
+        if (!preg_match('/^\d{10}$/', $serialNumber)) {
+            throw new InvalidSerialNumberFormatException(
+                "Serial-number should be exactly 10 digits: '$serialNumber'"
             );
         }
     }
 
-    private function guardAgainstInvalidType22AccountNumber($accountNumber)
+    private function guardAgainstInvalidType22SerialNumber($serialNumber)
     {
-        if (!preg_match('/^\d{9}$/', $accountNumber)) {
-            throw new InvalidAccountNumberFormatException(
-                "Account-number should be exactly 9 digits: '$accountNumber'"
+        if (!preg_match('/^\d{9}$/', $serialNumber)) {
+            throw new InvalidSerialNumberFormatException(
+                "Serial-number should be exactly 9 digits: '$serialNumber'"
             );
         }
     }
 
-    private function guardAgainstInvalidType23AccountNumber($accountNumber)
+    private function guardAgainstInvalidType23SerialNumber($serialNumber)
     {
-        if (!preg_match('/^\d{1,10}$/', $accountNumber)) {
-            throw new InvalidAccountNumberFormatException(
-                "Account-number should be maximum 10 digits: '$accountNumber'"
+        if (!preg_match('/^\d{1,10}$/', $serialNumber)) {
+            throw new InvalidSerialNumberFormatException(
+                "Serial-number should be maximum 10 digits: '$serialNumber'"
             );
         }
     }

@@ -2,8 +2,6 @@
 
 namespace SwedishBankAccountValidator;
 
-use SwedishBankAccountValidator\Exception\UnsupportedBankException;
-
 class ClearingNumberRange
 {
     private $map = [];
@@ -32,10 +30,6 @@ class ClearingNumberRange
 
     public function requireBankByClearingNumber(ClearingNumber $clearingNumber)
     {
-        if (!array_key_exists($clearingNumber->__toString(), $this->map)) {
-            throw new UnsupportedBankException("No support for bank with clearing number: '$clearingNumber'");
-        }
-
         return $this->map[$clearingNumber->__toString()];
     }
 

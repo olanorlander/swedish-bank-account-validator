@@ -3,30 +3,24 @@
 namespace SwedishBankAccountValidator;
 
 use PHPUnit\Framework\TestCase;
-use SwedishBankAccountValidator\Exception\InvalidAccountNumberFormatException;
+use SwedishBankAccountValidator\Exception\InvalidSerialNumberFormatException;
 
 class BankAccountValidatorTest extends TestCase
 {
-    /** @var BankAccountValidator */
-    private $validator;
-
-    public function setUp()
-    {
-        $this->validator = new BankAccountValidator();
-    }
-
     /**
      * @param string $bankName
      * @param string $clearingNumber
-     * @param string $accountNumber
+     * @param string $serialNumber
      * @dataProvider validAccountNumberProvider
      */
-    public function test_validating_valid_account_numbers($bankName, $clearingNumber, $accountNumber)
+    public function test_validating_valid_account_numbers($bankName, $clearingNumber, $serialNumber)
     {
-        $result = $this->validator->validate($clearingNumber, $accountNumber);
+        $result = BankAccountValidator::newSerialNumberValidatorByClearingNumber($clearingNumber)
+            ->validateSerialNumber($serialNumber);
+
         $this->assertEquals($bankName, $result->getBankName());
         $this->assertEquals($clearingNumber, $result->getClearingNumber());
-        $this->assertEquals($accountNumber, $result->getAccountNumber());
+        $this->assertEquals($serialNumber, $result->getAccountNumber());
         $this->assertTrue($result->isValidChecksum());
     }
 
@@ -49,8 +43,9 @@ class BankAccountValidatorTest extends TestCase
      */
     public function test_that_invalid_account_numbers_throws_exception($clearingNumber, $accountNumber)
     {
-        $this->expectException(InvalidAccountNumberFormatException::class);
-        $this->validator->validate($clearingNumber, $accountNumber);
+        $this->expectException(InvalidSerialNumberFormatException::class);
+        BankAccountValidator::newSerialNumberValidatorByClearingNumber($clearingNumber)
+            ->validateSerialNumber($accountNumber);
     }
 
     public function invalidAccountNumberProvider()
