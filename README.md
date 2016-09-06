@@ -28,7 +28,9 @@ Then use the "Serial Number Validator".
 try {
     $serialNumberValidator->validateSerialNumber('1231236')
 } catch (InvalidSerialNumberFormatException $e) {
-    echo 'Wrong serial-number for bank "' . $serialNumberValidator->getBankName() . '": ' . $e->getMessage();
+    echo 'Invalid account format for "' . $serialNumberValidator->getBankName() . '": ' . $e->getMessage();
+} catch (InvalidChecksumException $e) {
+    echo 'Invalid checksum for "' . $serialNumberValidator->getBankName() . '": ' . $e->getMessage();
 }
 ```
 

@@ -18,7 +18,12 @@ class SerialNumberValidator
      */
     public function validateSerialNumber($serialNumber)
     {
-        return $this->bank->validateSerialNumber($serialNumber);
+        $this->bank->validateSerialNumber($serialNumber);
+        return new ValidatorResult(
+            $this->bank->getBankName(),
+            $this->bank->getClearingNumber(),
+            $serialNumber
+        );
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace SwedishBankAccountValidator;
 
+use SwedishBankAccountValidator\Exception\InvalidChecksumException;
 use SwedishBankAccountValidator\Exception\InvalidSerialNumberFormatException;
 
 class Bank
@@ -63,17 +64,20 @@ class Bank
             $checksum = $this->clearingNumber . $serialNumber;
             $checksum = $this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_1_1 ?
                 substr($checksum, 1) : $checksum;
-            return $this->response($serialNumber, $this->verifyMod11Checksum($checksum));
+            $this->guardAgainstInvalidChecksum(11, $checksum);
         } elseif ($this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_2_1) {
             $this->guardAgainstInvalidType21SerialNumber($serialNumber);
-            return $this->response($serialNumber, $this->verifyMod10Checksum($serialNumber));
+            $this->guardAgainstInvalidChecksum(10, $serialNumber);
+            return $this->verifyMod10Checksum($serialNumber);
         } elseif ($this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_2_2) {
             $this->guardAgainstInvalidType22SerialNumber($serialNumber);
-            return $this->response($serialNumber, $this->verifyMod11Checksum($serialNumber));
+            $this->guardAgainstInvalidChecksum(11, $serialNumber);
         } elseif ($this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_2_3) {
             $this->guardAgainstInvalidType23SerialNumber($serialNumber);
-            return $this->response($serialNumber, $this->verifyMod10Checksum(substr($serialNumber, -10)));
+            $this->guardAgainstInvalidChecksum(10, substr($serialNumber, -10));
         }
+
+        return true;
     }
 
     /**
@@ -84,14 +88,12 @@ class Bank
         return $this->bankName;
     }
 
-    private function response($serialNumber, $isValidChecksum)
+    /**
+     * @return ClearingNumber
+     */
+    public function getClearingNumber()
     {
-        return new ValidatorResult(
-            $this->bankName,
-            $this->clearingNumber,
-            $serialNumber,
-            $isValidChecksum
-        );
+        return $this->clearingNumber;
     }
 
     private function getAccountNumberType()
@@ -134,6 +136,19 @@ class Bank
                 "Serial-number should be maximum 10 digits: '$serialNumber'"
             );
         }
+    }
+
+    private function guardAgainstInvalidChecksum($modulus, $number)
+    {
+        if ($modulus == 10 && $this->verifyMod10Checksum($number)) {
+            return true;
+        }
+
+        if ($modulus == 11 && $this->verifyMod11Checksum($number)) {
+            return true;
+        }
+
+        throw new InvalidChecksumException("Incorrect checksum for number: $number");
     }
 
     /**

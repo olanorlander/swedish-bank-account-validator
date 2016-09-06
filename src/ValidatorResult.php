@@ -9,23 +9,19 @@ class ValidatorResult
     /** @var ClearingNumber */
     private $clearingNumber;
     /** @var string */
-    private $accountNumber;
-    /** @var bool */
-    private $isValidChecksum;
+    private $serialNumber;
 
     /**
      * ValidatorResult constructor.
      * @param string $bankName
      * @param ClearingNumber $clearingNumber
-     * @param string $accountNumber
-     * @param bool $isValidChecksum
+     * @param string $serialNumber
      */
-    public function __construct($bankName, ClearingNumber $clearingNumber, $accountNumber, $isValidChecksum)
+    public function __construct($bankName, ClearingNumber $clearingNumber, $serialNumber)
     {
         $this->bankName = $bankName;
         $this->clearingNumber = $clearingNumber;
-        $this->accountNumber = $accountNumber;
-        $this->isValidChecksum = $isValidChecksum;
+        $this->serialNumber = $serialNumber;
     }
 
     /**
@@ -47,16 +43,8 @@ class ValidatorResult
     /**
      * @return string
      */
-    public function getAccountNumber()
+    public function getSerialNumber()
     {
-        return $this->accountNumber;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isValidChecksum()
-    {
-        return $this->isValidChecksum;
+        return $this->serialNumber;
     }
 }

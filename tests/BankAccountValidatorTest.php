@@ -20,8 +20,7 @@ class BankAccountValidatorTest extends TestCase
 
         $this->assertEquals($bankName, $result->getBankName());
         $this->assertEquals($clearingNumber, $result->getClearingNumber());
-        $this->assertEquals($serialNumber, $result->getAccountNumber());
-        $this->assertTrue($result->isValidChecksum());
+        $this->assertEquals($serialNumber, $result->getSerialNumber());
     }
 
     public function validAccountNumberProvider()
