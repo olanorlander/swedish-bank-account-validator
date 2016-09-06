@@ -16,7 +16,7 @@ class SerialNumberValidator
      * @param string $serialNumber
      * @return ValidatorResult
      */
-    public function validateSerialNumber($serialNumber)
+    public function withSerialNumber($serialNumber)
     {
         $this->bank->validateSerialNumber($serialNumber);
         return new ValidatorResult(

@@ -8,47 +8,60 @@ use SwedishBankAccountValidator\Exception\InvalidSerialNumberFormatException;
 class Bank
 {
     const AMFA_BANK_AB = 'Amfa Bank AB';
-    const AVANZA_BANK_AB = 'Avanza Bank AB';
+    const BNP_PARIBAS_FORTIS_BANK = 'BNP Paribas Fortis Bank';
+    const CITIBANK = 'Citibank';
     const DANSKE_BANK = 'Danske Bank';
+    const DNB_BANK = 'DNB Bank';
+    const EKOBANKEN = 'Ekobanken';
     const FOREX_BANK = 'Forex Bank';
     const HANDELSBANKEN = 'Handelsbanken';
+    const ICA_BANKEN_AB = 'ICA Banken AB';
+    const IKANO_BANK = 'IKANO Bank';
+    const LANSFÖRSÄKRINGAR_BANK = 'Länsförsäkringar Bank';
+    const MARGINALEN_BANK = 'Marginalen Bank';
+    const NORDAX_BANK_AB = 'Nordax Bank AB';
+    const NORDEA = 'Nordea';
     const NORDEA_PLUSGIRO = 'Nordea/Plusgirot';
-
-    const ACCOUNT_NUMBER_TYPE_1_1 = '1-1';
-    const ACCOUNT_NUMBER_TYPE_1_2 = '1-2';
-    const ACCOUNT_NUMBER_TYPE_2_1 = '2-1';
-    const ACCOUNT_NUMBER_TYPE_2_2 = '2-2';
-    const ACCOUNT_NUMBER_TYPE_2_3 = '2-3';
-
-    private static $accountTypes = [
-        self::AMFA_BANK_AB => self::ACCOUNT_NUMBER_TYPE_1_2,
-        self::FOREX_BANK => self::ACCOUNT_NUMBER_TYPE_1_1,
-        self::DANSKE_BANK => self::ACCOUNT_NUMBER_TYPE_2_1,
-        self::HANDELSBANKEN => self::ACCOUNT_NUMBER_TYPE_2_2,
-        self::NORDEA_PLUSGIRO => self::ACCOUNT_NUMBER_TYPE_2_3
-    ];
+    const NORDEA_PERSON_ACCOUNT = 'Nordea - personkonto';
+    const NORDNET_BANK = 'Nordnet Bank';
+    const RESURS_BANK = 'Resurs Bank';
+    const RIKSGALDEN = 'Riksgälden';
+    const ROYAL_BANK_OF_SCOTLAND = 'Royal bank of Scotland';
+    const SBAB = 'SBAB';
+    const SEB = 'SEB';
+    const SKANDIABANKEN = 'Skandiabanken';
+    const SPARBANKEN_SYD = 'Sparbanken Syd';
+    const SWEDBANK = 'Swedbank';
+    const SWEDBANK_SPARBANKEN_ORESUND = 'Swedbank (f.d. Sparbanken Öresund)';
+    const ALANDSBANKEN_SVERIGE_AB = 'Ålandsbanken Sverige AB';
 
     /** @var string */
-
     private $bankName;
+    /** @var string */
+    private $accountType;
     /** @var ClearingNumber */
     private $clearingNumber;
 
     /**
      * Bank constructor.
      * @param string $bankName
+     * @param string $accountType
      * @param ClearingNumber $clearingNumber
      */
-    private function __construct($bankName, ClearingNumber $clearingNumber)
+    private function __construct($bankName, $accountType, ClearingNumber $clearingNumber)
     {
         $this->bankName = $bankName;
+        $this->accountType = $accountType;
         $this->clearingNumber = $clearingNumber;
     }
 
-    public static function getInstanceByClearingNumber(ClearingNumber $clearingNumber)
+    public static function requireInstanceByClearingNumber(ClearingNumber $clearingNumber)
     {
+        $range = ClearingNumberRange::getInstance()->requireBankByClearingNumber($clearingNumber);
+
         return new self(
-            ClearingNumberRange::getInstance()->requireBankByClearingNumber($clearingNumber),
+            $range['bankName'],
+            $range['accountType'],
             $clearingNumber
         );
     }
@@ -59,20 +72,22 @@ class Bank
      */
     public function validateSerialNumber($serialNumber)
     {
-        if (in_array($this->getAccountNumberType(), [self::ACCOUNT_NUMBER_TYPE_1_1, self::ACCOUNT_NUMBER_TYPE_1_2])) {
+        if (in_array($this->accountType, [
+            ClearingNumberRange::ACCOUNT_TYPE_1_1,
+            ClearingNumberRange::ACCOUNT_TYPE_1_2])
+        ) {
             $this->guardAgainstInvalidType1SerialNumber($this->clearingNumber, $serialNumber);
             $checksum = $this->clearingNumber . $serialNumber;
-            $checksum = $this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_1_1 ?
+            $checksum = $this->accountType == ClearingNumberRange::ACCOUNT_TYPE_1_1 ?
                 substr($checksum, 1) : $checksum;
             $this->guardAgainstInvalidChecksum(11, $checksum);
-        } elseif ($this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_2_1) {
+        } elseif ($this->accountType == ClearingNumberRange::ACCOUNT_TYPE_2_1) {
             $this->guardAgainstInvalidType21SerialNumber($serialNumber);
             $this->guardAgainstInvalidChecksum(10, $serialNumber);
-            return $this->verifyMod10Checksum($serialNumber);
-        } elseif ($this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_2_2) {
+        } elseif ($this->accountType == ClearingNumberRange::ACCOUNT_TYPE_2_2) {
             $this->guardAgainstInvalidType22SerialNumber($serialNumber);
             $this->guardAgainstInvalidChecksum(11, $serialNumber);
-        } elseif ($this->getAccountNumberType() == self::ACCOUNT_NUMBER_TYPE_2_3) {
+        } elseif ($this->accountType == ClearingNumberRange::ACCOUNT_TYPE_2_3) {
             $this->guardAgainstInvalidType23SerialNumber($serialNumber);
             $this->guardAgainstInvalidChecksum(10, substr($serialNumber, -10));
         }
@@ -94,11 +109,6 @@ class Bank
     public function getClearingNumber()
     {
         return $this->clearingNumber;
-    }
-
-    private function getAccountNumberType()
-    {
-        return self::$accountTypes[$this->bankName];
     }
 
     private function guardAgainstInvalidType1SerialNumber(ClearingNumber $clearingNumber, $serialNumber)
@@ -140,58 +150,21 @@ class Bank
 
     private function guardAgainstInvalidChecksum($modulus, $number)
     {
-        if ($modulus == 10 && $this->verifyMod10Checksum($number)) {
+        if ($modulus == 10 && ModulusCalculator::verifyMod10Checksum($number)) {
             return true;
         }
 
-        if ($modulus == 11 && $this->verifyMod11Checksum($number)) {
+        if ($modulus == 11 && ModulusCalculator::verifyMod11Checksum($number)) {
             return true;
+        }
+
+        if ($this->bankName == Bank::SWEDBANK) {
+            throw new InvalidChecksumException(
+                "Incorrect checksum for number: $number" . PHP_EOL .
+                "However, in rare cases Swedbank account number with bad checksum do exists."
+            );
         }
 
         throw new InvalidChecksumException("Incorrect checksum for number: $number");
-    }
-
-    /**
-     * @param string $number
-     * @return bool
-     */
-    private function verifyMod11Checksum($number)
-    {
-        $numberLength = strlen($number);
-        $sum = 0;
-        $weights = [1, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
-        $arr = array_splice(
-            $weights,
-            count($weights) - $numberLength,
-            count($weights) - (count($weights) - $numberLength)
-        );
-
-        while ($numberLength) {
-          $value = intval(substr($number,--$numberLength, 1), 10);
-          $x = $arr[$numberLength] * $value;
-          $sum += $x;
-        }
-
-        return $sum && $sum % 11 === 0;
-    }
-
-
-    /**
-     * @param string $number
-     * @return bool
-     */
-    private function verifyMod10Checksum($number)
-    {
-        $numberLength = strlen($number);
-        $bit = 1;
-        $sum = 0;
-        $arr = [0, 2, 4, 6, 8, 1, 3, 5, 7, 9];
-
-        while ($numberLength) {
-            $value = intval(substr($number, --$numberLength, 1), 10);
-            $sum += ($bit ^= 1) ? $arr[$value] : $value;
-        }
-
-        return $sum && $sum % 10 === 0;
     }
 }

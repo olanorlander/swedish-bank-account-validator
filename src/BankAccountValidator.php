@@ -8,15 +8,10 @@ class BankAccountValidator
      * @param $string
      * @return SerialNumberValidator
      */
-    public static function newSerialNumberValidatorByClearingNumber($string)
+    public static function withClearingNumber($string)
     {
         $clearingNumber = new ClearingNumber($string);
-        return self::requireBankWithClearingNumber($clearingNumber);
-    }
-
-    private static function requireBankWithClearingNumber(ClearingNumber $clearingNumber)
-    {
-        $bank = Bank::getInstanceByClearingNumber($clearingNumber);
+        $bank = Bank::requireInstanceByClearingNumber($clearingNumber);
         return new SerialNumberValidator($bank);
     }
 }

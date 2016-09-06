@@ -5,7 +5,7 @@ and serial number.
 
 The library validates that:
 * Which bank an account number is connected to if that bank supports BankGiro
-* If the serial number has the correct format and checksum
+* If the serial number has the correct format and checksum (mod10 and mod11)
 
 The logic of validating the accounts is based in the following document:
 
@@ -14,19 +14,19 @@ The logic of validating the accounts is based in the following document:
 ![Travis](https://travis-ci.org/olanorlander/swedish-bank-account-validator.svg)
 
 ### Example
-First use a static method with the clearing-number to fetch a "Serial Number Validator".
+First use a static method and send in the clearing-number as a parameter to fetch a "Serial Number Validator".
 ```php
 try {
-    $serialNumberValidator = BankAccountValidator::newSerialNumberValidatorByClearingNumber('9661');
+    $serialNumberValidator = BankAccountValidator::withClearingNumber('9661');
 } catch (InvalidClearingNumberException $e) {
     echo "Wrong clearing-number:" . $e->getMessage();
 }
 ```
 
-Then use the "Serial Number Validator".
+Then use the "Serial Number Validator" and send the serial number as parameter.
 ```php
 try {
-    $serialNumberValidator->validateSerialNumber('1231236')
+    $result = $serialNumberValidator->withSerialNumber('1231236')
 } catch (InvalidSerialNumberFormatException $e) {
     echo 'Invalid account format for "' . $serialNumberValidator->getBankName() . '": ' . $e->getMessage();
 } catch (InvalidChecksumException $e) {
@@ -36,6 +36,16 @@ try {
 
 It's also possible to chain both methods
 ```php
-BankAccountValidator::newSerialNumberValidatorByClearingNumber('9661')->validateSerialNumber('1231236');
+BankAccountValidator::withClearingNumber('9661')->withSerialNumber('1231236');
+```
+
+If no exception were thrown the validator will return a ValidatorResponse indicating that the account is valid
+```php
+$serialNumberValidator = BankAccountValidator::withClearingNumber('9661');
+$result = $serialNumberValidator->withSerialNumber('1231236')
+echo 'Valid account' . PHP_EOL;
+echo 'Bank: ' . $result->getBankName() . PHP_EOL;
+echo 'Clearingnr: ' . $result->getClearingNumber() . PHP_EOL;
+echo 'Serialnr: ' . $result->getSerialNumber() . PHP_EOL;
 ```
 

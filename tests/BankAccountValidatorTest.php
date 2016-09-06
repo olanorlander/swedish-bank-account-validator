@@ -3,6 +3,7 @@
 namespace SwedishBankAccountValidator;
 
 use PHPUnit\Framework\TestCase;
+use SwedishBankAccountValidator\Exception\InvalidChecksumException;
 use SwedishBankAccountValidator\Exception\InvalidSerialNumberFormatException;
 
 class BankAccountValidatorTest extends TestCase
@@ -15,8 +16,8 @@ class BankAccountValidatorTest extends TestCase
      */
     public function test_validating_valid_account_numbers($bankName, $clearingNumber, $serialNumber)
     {
-        $result = BankAccountValidator::newSerialNumberValidatorByClearingNumber($clearingNumber)
-            ->validateSerialNumber($serialNumber);
+        $result = BankAccountValidator::withClearingNumber($clearingNumber)
+            ->withSerialNumber($serialNumber);
 
         $this->assertEquals($bankName, $result->getBankName());
         $this->assertEquals($clearingNumber, $result->getClearingNumber());
@@ -34,7 +35,6 @@ class BankAccountValidatorTest extends TestCase
         ];
     }
 
-
     /**
      * @param string $clearingNumber
      * @param string $accountNumber
@@ -43,8 +43,8 @@ class BankAccountValidatorTest extends TestCase
     public function test_that_invalid_account_numbers_throws_exception($clearingNumber, $accountNumber)
     {
         $this->expectException(InvalidSerialNumberFormatException::class);
-        BankAccountValidator::newSerialNumberValidatorByClearingNumber($clearingNumber)
-            ->validateSerialNumber($accountNumber);
+        BankAccountValidator::withClearingNumber($clearingNumber)
+            ->withSerialNumber($accountNumber);
     }
 
     public function invalidAccountNumberProvider()
@@ -57,5 +57,12 @@ class BankAccountValidatorTest extends TestCase
             'Account Number Type 2-2 to short' => ['6875', '2015555'],
             'Account Number Type 2-3 to long' => ['9960', '123123123123'],
         ];
+    }
+
+    public function test_that_invalid_checksum_for_swedbank_throws_disclamer()
+    {
+        $this->expectException(InvalidChecksumException::class);
+        $this->expectExceptionMessageRegExp('/.*Swedbank account number with bad checksum do exists.*/');
+        BankAccountValidator::withClearingNumber('8001')->withSerialNumber('123');
     }
 }
