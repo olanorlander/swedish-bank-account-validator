@@ -2,9 +2,10 @@
 
 namespace SwedishBankAccountValidator;
 
+use PHPUnit_Framework_TestCase;
 use SwedishBankAccountValidator\Exception\InvalidClearingNumberException;
 
-class ClearingNumberTest extends \PHPUnit_Framework_TestCase
+class ClearingNumberTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @param $clearingNumber
@@ -33,7 +34,7 @@ class ClearingNumberTest extends \PHPUnit_Framework_TestCase
      */
     public function test_that_invalid_clearing_number_length_throws_exception($invalidClearing)
     {
-        $this->expectException(InvalidClearingNumberException::class);
+        $this->setExpectedException(InvalidClearingNumberException::class);
         new ClearingNumber($invalidClearing);
     }
 

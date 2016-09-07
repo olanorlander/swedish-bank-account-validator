@@ -2,11 +2,11 @@
 
 namespace SwedishBankAccountValidator;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit_Framework_TestCase;
 use SwedishBankAccountValidator\Exception\InvalidChecksumException;
 use SwedishBankAccountValidator\Exception\InvalidSerialNumberFormatException;
 
-class BankAccountValidatorTest extends TestCase
+class BankAccountValidatorTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @param string $bankName
@@ -42,7 +42,7 @@ class BankAccountValidatorTest extends TestCase
      */
     public function test_that_invalid_account_numbers_throws_exception($clearingNumber, $accountNumber)
     {
-        $this->expectException(InvalidSerialNumberFormatException::class);
+        $this->setExpectedException(InvalidSerialNumberFormatException::class);
         BankAccountValidator::withClearingNumber($clearingNumber)
             ->withSerialNumber($accountNumber);
     }
@@ -61,8 +61,10 @@ class BankAccountValidatorTest extends TestCase
 
     public function test_that_invalid_checksum_for_swedbank_throws_disclamer()
     {
-        $this->expectException(InvalidChecksumException::class);
-        $this->expectExceptionMessageRegExp('/.*Swedbank account number with bad checksum do exists.*/');
+        $this->setExpectedExceptionRegExp(
+            InvalidChecksumException::class,
+            '/.*Swedbank account number with bad checksum do exists.*/'
+        );
         BankAccountValidator::withClearingNumber('8001')->withSerialNumber('123');
     }
 }
