@@ -4,6 +4,7 @@ namespace SwedishBankAccountValidator;
 
 use SwedishBankAccountValidator\Exception\InvalidChecksumException;
 use SwedishBankAccountValidator\Exception\InvalidSerialNumberFormatException;
+use SwedishBankAccountValidator\Exception\InvalidSwedbankChecksumException;
 
 class Bank
 {
@@ -77,10 +78,10 @@ class Bank
             ClearingNumberRange::ACCOUNT_TYPE_1_2])
         ) {
             $this->guardAgainstInvalidType1SerialNumber($this->clearingNumber, $serialNumber);
-            $checksum = $this->clearingNumber . $serialNumber;
-            $checksum = $this->accountType == ClearingNumberRange::ACCOUNT_TYPE_1_1 ?
-                substr($checksum, 1) : $checksum;
-            $this->guardAgainstInvalidChecksum(11, $checksum);
+            $number = $this->clearingNumber . $serialNumber;
+            $number = $this->accountType == ClearingNumberRange::ACCOUNT_TYPE_1_1 ?
+                substr($number, 1) : $number;
+            $this->guardAgainstInvalidChecksum(11, $number);
         } elseif ($this->accountType == ClearingNumberRange::ACCOUNT_TYPE_2_1) {
             $this->guardAgainstInvalidType21SerialNumber($serialNumber);
             $this->guardAgainstInvalidChecksum(10, $serialNumber);
@@ -159,7 +160,7 @@ class Bank
         }
 
         if ($this->bankName == Bank::SWEDBANK) {
-            throw new InvalidChecksumException(
+            throw new InvalidSwedbankChecksumException(
                 "Incorrect checksum for number: $number" . PHP_EOL .
                 "However, in rare cases Swedbank account number with bad checksum do exists."
             );
