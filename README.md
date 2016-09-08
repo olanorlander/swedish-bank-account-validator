@@ -11,7 +11,7 @@ The logic of validating the accounts is based in the following document:
 
 [Bankernas kontonummer](https://www.bankgirot.se/globalassets/dokument/anvandarmanualer/bankernaskontonummeruppbyggnad_anvandarmanual_sv.pdf) (Bankgirot)
 
-![Travis](https://travis-ci.org/olanorlander/swedish-bank-account-validator)
+[![Build Status](https://travis-ci.org/olanorlander/swedish-bank-account-validator.png)](https://travis-ci.org/olanorlander/swedish-bank-account-validator)
 
 ### Example
 First use a static method and send in the clearing-number as a parameter to fetch a "Serial Number Validator".
